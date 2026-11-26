@@ -85,13 +85,15 @@ private fun AppScaffold(rootStatus: RootStatus) {
                 "detail/{bssid}",
                 arguments = listOf(navArgument("bssid") { type = NavType.StringType })
             ) { entry ->
-import com.aibuilt.wifihack.ui.DetailScreen
-import com.aibuilt.wifihack.ui.ConnectScreen
-import com.aibuilt.wifihack.ui.VaultScreen
+// Delete these four lines from inside the NavHost { } lambda. Leave nothing in their place.
+// Add them to the top-of-file import block in alphabetical order, skipping any that are already there:
 import com.aibuilt.wifihack.ui.AuditScreen
-I couldn't fix this because the code you sent is empty. There's nothing between the opening and closing fences, and MainActivity.kt isn't in my working directories.
+import com.aibuilt.wifihack.ui.ConnectScreen
+import com.aibuilt.wifihack.ui.DetailScreen
+import com.aibuilt.wifihack.ui.VaultScreen
+```
 
-From the error, lines 88–89 hold markdown fence text (```` ``` ```` / ```` ```kotlin ````), and Kotlin reads those lines as broken `import` statements. To fix it by hand, delete every line in MainActivity.kt that is only ```` ``` ```` or ```` ```kotlin `
+The wifihack `MainActivity.kt` also isn't in my working directories. To fix the build, send the real file contents, or at least lines 80–100, which cover the stretch from `) { entry ->` (line 87) to `DetailScreen(` (line 95). Then I can remove the stray ```` ``` ````/```` ```kotlin `
                 DetailScreen(
                     bssid = entry.arguments?.getString("bssid").orEmpty(),
                     onConnect = { navController.navigate("connect") },
