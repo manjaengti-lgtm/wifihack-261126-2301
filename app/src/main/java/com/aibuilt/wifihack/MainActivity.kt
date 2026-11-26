@@ -89,9 +89,9 @@ import com.aibuilt.wifihack.ui.DetailScreen
 import com.aibuilt.wifihack.ui.ConnectScreen
 import com.aibuilt.wifihack.ui.VaultScreen
 import com.aibuilt.wifihack.ui.AuditScreen
-```
+I couldn't fix this because the code you sent is empty. There's nothing between the opening and closing fences, and MainActivity.kt isn't in my working directories.
 
-```kotlin
+From the error, lines 88–89 hold markdown fence text (```` ``` ```` / ```` ```kotlin ````), and Kotlin reads those lines as broken `import` statements. To fix it by hand, delete every line in MainActivity.kt that is only ```` ``` ```` or ```` ```kotlin `
                 DetailScreen(
                     bssid = entry.arguments?.getString("bssid").orEmpty(),
                     onConnect = { navController.navigate("connect") },
