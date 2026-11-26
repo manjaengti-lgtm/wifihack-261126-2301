@@ -88,7 +88,6 @@ private fun AppScaffold(rootStatus: RootStatus) {
 // Delete these four lines from inside the NavHost { } lambda. Leave nothing in their place.
 // Add them to the top-of-file import block in alphabetical order, skipping any that are already there:
 package com.aibuilt.wifihack
-
 // Put these four in the import block at the top of the file, under the package
 // line and sorted with the other imports. Delete the copies at lines 90–91:
 // Kotlin only allows imports before any declarations.
