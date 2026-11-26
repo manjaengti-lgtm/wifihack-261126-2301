@@ -1,0 +1,45 @@
+# vendor <TAB> username <TAB> password   (* = applies to any vendor)
+TP-Link	admin	admin
+TP-Link	admin	1234
+Netgear	admin	password
+Netgear	admin	1234
+D-Link	admin	
+D-Link	admin	admin
+D-Link	user	
+Cisco-Linksys	admin	admin
+Cisco-Linksys		admin
+Belkin	admin	
+Belkin	admin	admin
+ASUSTek	admin	admin
+Huawei	admin	admin
+Huawei	telecomadmin	admintelecom
+Huawei	root	admin
+ZTE	admin	admin
+ZTE	user	user
+Zyxel	admin	1234
+Zyxel	admin	admin
+Tenda	admin	admin
+Arris	admin	password
+Arris	admin	admin
+Technicolor	admin	admin
+Technicolor	Administrator	
+Ubiquiti	ubnt	ubnt
+Xiaomi	admin	admin
+Nokia	admin	admin
+*	admin	admin
+*	admin	password
+*	admin	1234
+*	admin	
+*	admin	12345
+*	admin	root
+*	root	root
+*	root	admin
+*	root	password
+*	user	user
+*	guest	guest
+*	admin	0000
+*	admin	changeme
+*	admin	pass
+*	admin	administrator
+*		admin
+*	admin	123456

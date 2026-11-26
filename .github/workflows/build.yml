@@ -1,0 +1,96 @@
+name: Build APK
+on:
+  push:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v5
+        with:
+          gradle-version: "9.9.2"
+      - name: Signing key and Gradle wrapper (created once, then reused)
+        run: |
+          CHANGED=""
+          if [ ! -f app/signing.keystore ]; then
+            keytool -genkeypair -keystore app/signing.keystore -storepass android -keypass android -alias app -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Arin"
+            git add app/signing.keystore
+            CHANGED=1
+          fi
+          # gradlew + its jar, so the project also opens and builds in Android Studio with no setup.
+          if [ ! -f gradlew ] || [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
+            gradle wrapper --gradle-version "9.9.2" --distribution-type bin && chmod +x gradlew
+            git add gradlew gradlew.bat gradle/wrapper/gradle-wrapper.jar gradle/wrapper/gradle-wrapper.properties
+            CHANGED=1
+          fi
+          if [ -n "$CHANGED" ]; then
+            git config user.name "Arin"
+            git config user.email "arin@users.noreply.github.com"
+            git commit -m "Add signing key and Gradle wrapper"
+            git push origin HEAD:${{ github.ref_name }} || echo "Couldn't save them; this build still works."
+          fi
+      - name: Build debug APK
+        run: |
+          set -o pipefail
+          gradle assembleDebug --stacktrace 2>&1 | tee build.log
+      - name: Report errors
+        if: failure()
+        run: |
+          grep -E "^e: |error:|What went wrong|Could not resolve|FAILURE" -A2 build.log | head -60 | while IFS= read -r l; do
+            echo "::error::${l//%/%25}"
+          done
+      - name: Rename APK
+        run: cp app/build/outputs/apk/debug/app-debug.apk app-${{ github.run_number }}.apk
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: Build ${{ github.run_number }}
+          files: app-*.apk
+          make_latest: true
+  # ARIN-PROTECTED: test-before-handover — the APK is installed on an Android emulator, opened and tapped
+  # around; Arin hands the download link over only when this test passes. (Its own job: a test problem
+  # never breaks the build itself.)
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+      - name: Get the APK that was just built
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download "build-${{ github.run_number }}" --pattern 'app-*.apk' --output app.apk --clobber
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Open the app on an Android emulator and tap around
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
+          script: bash .github/arin-test.sh app.apk
+      - name: Make sure there is a report
+        if: always()
+        run: '[ -f arin-test-report.txt ] || echo "RESULT: NO_TEST" > arin-test-report.txt'
+      - uses: softprops/action-gh-release@v2
+        if: always()
+        with:
+          tag_name: build-${{ github.run_number }}
+          files: |
+            arin-test-report.txt
+            arin-test-screen.png
+          fail_on_unmatched_files: false
