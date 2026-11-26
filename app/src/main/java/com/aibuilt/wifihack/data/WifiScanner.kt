@@ -88,19 +88,20 @@ class WifiScanner(private val context: Context) {
             wm.scanResults.map { sr ->
                 @Suppress("DEPRECATION")
                 val ssid = sr.SSID ?: ""
+                val bssid = sr.BSSID ?: ""
                 WifiNetwork(
                     ssid = ssid,
-                    bssid = sr.BSSID ?: "",
+                    bssid = bssid,
                     capabilities = sr.capabilities ?: "",
                     level = sr.level,
                     frequency = sr.frequency,
-                    channelWidth = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) sr.channelWidth else 0,
-                    vendor = OuiLookup.vendorFor(sr.BSSID)
+                    channelWidth = sr.channelWidth,
+                    vendor = OuiLookup.vendorForSync(context, bssid)
                 )
             }
         }.getOrDefault(emptyList())
             .distinctBy { it.bssid.ifBlank { it.ssid } }
-            .sortedByDescending { it.level }   // strongest dBm first
+            .sortedByDescending { it.level }
         _results.value = list
         _scanning.value = false
     }
