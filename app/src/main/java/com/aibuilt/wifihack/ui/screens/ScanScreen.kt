@@ -114,7 +114,7 @@ private fun NetworkRow(row: WifiRow, onClick: () -> Unit) {
         Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(
-                    row.ssid.orEmpty().ifBlank { "<hidden>" },
+row.ssid.orEmpty().ifBlank { "<hidden>" },
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.titleSmall
@@ -130,8 +130,8 @@ private fun NetworkRow(row: WifiRow, onClick: () -> Unit) {
                     style = MaterialTheme.typography.bodySmall
                 )
             }
-            // level = RSSI in dBm (from ScanResult.level, an Int); the named arg checks it matches SignalMeter(dbm: Int)
-            SignalMeter(dbm = row.level.toInt())
+            // WifiRow declares `level: Int` (RSSI in dBm, copied from ScanResult.level), so it goes straight to SignalMeter(dbm: Int)
+            SignalMeter(dbm = row.level)
         }
     }
 }
