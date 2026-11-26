@@ -24,11 +24,12 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aibuilt.wifihack.data.AppContainer
 import com.aibuilt.wifihack.data.WifiRow
+import com.aibuilt.wifihack.data.WifiScanner
 
 @Composable
 fun ScanScreen(onOpenDetail: (String) -> Unit) {
     val context = LocalContext.current
-    val scanner = AppContainer.scanner
+    val scanner: WifiScanner = AppContainer.scanner
     val rows by scanner.results.collectAsStateWithLifecycle()
 
     var hasPerms by remember { mutableStateOf(hasScanPermissions(context)) }
@@ -113,7 +114,7 @@ private fun NetworkRow(row: WifiRow, onClick: () -> Unit) {
         Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(
-row.ssid.orEmpty().ifBlank { "<hidden>" },
+                    row.ssid.orEmpty().ifBlank { "<hidden>" },
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.titleSmall
@@ -129,7 +130,8 @@ row.ssid.orEmpty().ifBlank { "<hidden>" },
                     style = MaterialTheme.typography.bodySmall
                 )
             }
-            SignalMeter(row.level)
+            // level = RSSI in dBm (from ScanResult.level, an Int); the named arg checks it matches SignalMeter(dbm: Int)
+            SignalMeter(dbm = row.level.toInt())
         }
     }
 }
