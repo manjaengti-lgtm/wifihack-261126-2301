@@ -113,13 +113,13 @@ private fun NetworkRow(row: WifiRow, onClick: () -> Unit) {
         Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(
-                    row.ssid.ifBlank { "<hidden>" },
+row.ssid.orEmpty().ifBlank { "<hidden>" },
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.titleSmall
                 )
                 Text(
-                    "ch ${row.channel} · ${row.band} · ${row.security}",
+                    "ch ${row.channel} · ${row.band} · ${row.security.orEmpty()}",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodySmall
                 )
