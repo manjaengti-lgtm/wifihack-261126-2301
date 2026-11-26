@@ -89,7 +89,6 @@ private fun AppScaffold(rootStatus: RootStatus) {
 // Add them to the top-of-file import block in alphabetical order, skipping any that are already there:
 package com.aibuilt.wifihack
 // line and sorted with the other imports. Delete the copies at lines 90–91:
-// Kotlin only allows imports before any declarations.
 import com.aibuilt.wifihack.ui.AuditScreen
 import com.aibuilt.wifihack.ui.ConnectScreen
 import com.aibuilt.wifihack.ui.DetailScreen
