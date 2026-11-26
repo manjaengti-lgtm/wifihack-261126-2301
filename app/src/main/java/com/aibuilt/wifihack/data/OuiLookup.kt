@@ -8,42 +8,43 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 object OuiLookup {
-    private val map = HashMap<String, String>()
-    @Volatile private var loaded = false
+
+    @Volatile
+    private var table: Map<String, String>? = null
     private val mutex = Mutex()
 
     suspend fun ensureLoaded(context: Context) {
-        if (loaded) return
+        if (table != null) return
         mutex.withLock {
-            if (loaded) return
-            withContext(Dispatchers.IO) {
+            if (table != null) return
+            table = withContext(Dispatchers.IO) {
+                val map = HashMap<String, String>()
                 runCatching {
                     context.resources.openRawResource(R.raw.oui_prefixes)
                         .bufferedReader().useLines { lines ->
-                            for (line in lines) {
-                                val t = line.trim()
-                                if (t.isEmpty() || t.startsWith("#")) continue
-                                val parts =
-                                    if (t.contains('\t')) t.split('\t', limit = 2)
-                                    else t.split(Regex("\\s+"), limit = 2)
-                                if (parts.size == 2 && parts[1].isNotBlank()) {
-                                    map[normalize(parts[0])] = parts[1].trim()
-                                }
+                            for (raw in lines) {
+                                val line = raw.trim()
+                                if (line.isEmpty() || line.startsWith("#")) continue
+                                val idx = line.indexOf(' ')
+                                if (idx <= 0) continue
+                                val prefix = normalize(line.substring(0, idx))
+                                val vendor = line.substring(idx + 1).trim()
+                                if (prefix.length == 6 && vendor.isNotEmpty()) map[prefix] = vendor
                             }
                         }
                 }
-                loaded = true
+                map
             }
         }
     }
 
-    private fun normalize(prefix: String): String =
-        prefix.uppercase().replace(":", "").replace("-", "").filter { it.isLetterOrDigit() }.take(6)
+    private fun normalize(value: String): String =
+        value.uppercase().filter { it.isLetterOrDigit() }
 
-    fun vendorFor(bssid: String?): String {
-        if (bssid.isNullOrBlank()) return "Unknown"
-        val key = normalize(bssid)
+    suspend fun vendorFor(context: Context, bssid: String): String {
+        ensureLoaded(context)
+        val key = normalize(bssid).take(6)
         if (key.length < 6) return "Unknown"
-        return map[key] ?: "Unknown"
+        return table?.get(key) ?: "Unknown"
     }
 }

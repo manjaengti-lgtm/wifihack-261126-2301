@@ -3,40 +3,48 @@ package com.aibuilt.wifihack.data
 import android.content.Context
 import com.aibuilt.wifihack.R
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
-data class Credential(val vendor: String, val user: String, val pass: String)
+data class Credential(val user: String, val pass: String)
 
 object Wordlists {
-    @Volatile private var cache: List<Credential>? = null
 
-    private suspend fun all(context: Context): List<Credential> {
-        cache?.let { return it }
-        return withContext(Dispatchers.IO) {
-            val list = runCatching {
-                context.resources.openRawResource(R.raw.router_wordlist)
-                    .bufferedReader().readLines().mapNotNull { raw ->
-                        val t = raw.trimEnd()
-                        if (t.isBlank() || t.trimStart().startsWith("#")) return@mapNotNull null
-                        val cols = t.split('\t')
-                        if (cols.size < 3) return@mapNotNull null
-                        Credential(cols[0].trim(), cols[1], cols[2])
-                    }
-            }.getOrDefault(emptyList())
-            cache = list
-            list
+    // vendor, user, pass  (vendor "*" = global)
+    @Volatile
+    private var rows: List<Triple<String, String, String>>? = null
+    private val mutex = Mutex()
+
+    private suspend fun ensure(context: Context) {
+        if (rows != null) return
+        mutex.withLock {
+            if (rows != null) return
+            rows = withContext(Dispatchers.IO) {
+                val out = ArrayList<Triple<String, String, String>>()
+                runCatching {
+                    context.resources.openRawResource(R.raw.router_wordlist)
+                        .bufferedReader().useLines { lines ->
+                            for (raw in lines) {
+                                val line = raw.trim()
+                                if (line.isEmpty() || line.startsWith("#")) continue
+                                val parts = line.split(",")
+                                if (parts.size < 3) continue
+                                out.add(Triple(parts[0].trim(), parts[1].trim(), parts[2].trim()))
+                            }
+                        }
+                }
+                out
+            }
         }
     }
 
-    /** Vendor-scoped guesses first, then every global (*) guess, de-duplicated. */
     suspend fun forVendor(context: Context, vendor: String): List<Credential> {
-        val everything = all(context)
-        val vendorKey = vendor.substringBefore('/').trim().lowercase()
-        val scoped = everything.filter {
-            it.vendor != "*" && vendorKey.isNotEmpty() &&
-                (it.vendor.lowercase().contains(vendorKey) || vendorKey.contains(it.vendor.lowercase()))
-        }
-        val global = everything.filter { it.vendor == "*" }
-        return (scoped + global).distinctBy { "${it.user}\u0000${it.pass}" }
+        ensure(context)
+        val all = rows ?: emptyList()
+        val v = vendor.lowercase()
+        val scoped = all.filter { it.first != "*" && v.contains(it.first.lowercase()) }
+        val global = all.filter { it.first == "*" }
+        return (scoped + global).map { Credential(it.second, it.third) }.distinct()
     }
 }
