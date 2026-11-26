@@ -87,12 +87,16 @@ private fun AppScaffold(rootStatus: RootStatus) {
             ) { entry ->
 // Delete these four lines from inside the NavHost { } lambda. Leave nothing in their place.
 // Add them to the top-of-file import block in alphabetical order, skipping any that are already there:
+package com.aibuilt.wifihack
+
+// Put these four in the import block at the top of the file, under the package
+// line and sorted with the other imports. Delete the copies at lines 90–91:
+// Kotlin only allows imports before any declarations.
 import com.aibuilt.wifihack.ui.AuditScreen
 import com.aibuilt.wifihack.ui.ConnectScreen
 import com.aibuilt.wifihack.ui.DetailScreen
 import com.aibuilt.wifihack.ui.VaultScreen
-```
-
+(nothing)
 The wifihack `MainActivity.kt` also isn't in my working directories. To fix the build, send the real file contents, or at least lines 80–100, which cover the stretch from `) { entry ->` (line 87) to `DetailScreen(` (line 95). Then I can remove the stray ```` ``` ````/```` ```kotlin `
                 DetailScreen(
                     bssid = entry.arguments?.getString("bssid").orEmpty(),
