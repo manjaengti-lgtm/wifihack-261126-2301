@@ -65,15 +65,13 @@ class WifiConnector(
         if (online && saveToVault) {
             runCatching {
                 vault.add(
-                    VaultEntry(
+VaultEntry(
                         id = UUID.randomUUID().toString(),
                         ssid = ssid,
                         bssid = "",
                         password = password,
-                        security = security,
-                        vendor = vendor,
-                        note = "Verified online (HTTP $code)",
-                        savedAt = System.currentTimeMillis()
+                        notes = "Verified online (HTTP $code) · $security · $vendor",
+                        timestamp = System.currentTimeMillis()
                     )
                 )
             }

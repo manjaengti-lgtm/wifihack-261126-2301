@@ -85,6 +85,13 @@ private fun AppScaffold(rootStatus: RootStatus) {
                 "detail/{bssid}",
                 arguments = listOf(navArgument("bssid") { type = NavType.StringType })
             ) { entry ->
+import com.aibuilt.wifihack.ui.DetailScreen
+import com.aibuilt.wifihack.ui.ConnectScreen
+import com.aibuilt.wifihack.ui.VaultScreen
+import com.aibuilt.wifihack.ui.AuditScreen
+```
+
+```kotlin
                 DetailScreen(
                     bssid = entry.arguments?.getString("bssid").orEmpty(),
                     onConnect = { navController.navigate("connect") },
