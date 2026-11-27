@@ -23,8 +23,16 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aibuilt.wifihack.data.AppContainer
-import com.aibuilt.wifihack.data.WifiRow
 import com.aibuilt.wifihack.data.WifiScanner
+import com.aibuilt.wifihack.model.WifiNetwork
+
+// This screen renders the networks emitted by WifiScanner.results, which is a
+// StateFlow<List<WifiNetwork>>. WifiNetwork (com.aibuilt.wifihack.model) already
+// exposes ssid, bssid, channel, band, security and level, so WifiRow is just an
+// alias for it — do NOT declare a separate data class (it would mismatch the flow).
+// NOTE: WifiScanner has no refresh(); its scan trigger is triggerScan(). The two
+// scanner.refresh() calls in ScanScreen's body must be changed to scanner.triggerScan().
+typealias WifiRow = WifiNetwork
 
 @Composable
 fun ScanScreen(onOpenDetail: (String) -> Unit) {
@@ -57,10 +65,10 @@ fun ScanScreen(onOpenDetail: (String) -> Unit) {
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.weight(1f)
             )
-            IconButton(onClick = {
+IconButton(onClick = {
                 hasPerms = hasScanPermissions(context)
                 locationOn = isLocationEnabled(context)
-                if (hasPerms) scanner.refresh()
+                if (hasPerms) scanner.triggerScan()
             }) {
                 Icon(Icons.Filled.Refresh, contentDescription = "Refresh",
                     tint = MaterialTheme.colorScheme.primary)
@@ -114,13 +122,13 @@ private fun NetworkRow(row: WifiRow, onClick: () -> Unit) {
         Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(
-row.ssid.orEmpty().ifBlank { "<hidden>" },
+row.ssid.ifBlank { "<hidden>" },
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.titleSmall
                 )
                 Text(
-                    "ch ${row.channel} · ${row.band} · ${row.security.orEmpty()}",
+                    "ch ${row.channel} · ${row.band} · ${row.security}",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodySmall
                 )
