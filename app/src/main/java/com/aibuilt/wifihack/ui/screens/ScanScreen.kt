@@ -91,7 +91,7 @@ IconButton(onClick = {
                 "Refresh"
             ) {
                 locationOn = isLocationEnabled(context)
-                if (locationOn) scanner.refresh()
+                if (locationOn) scanner.triggerScan()
             }
 
             rows.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
